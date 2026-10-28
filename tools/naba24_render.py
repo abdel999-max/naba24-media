@@ -30,7 +30,7 @@ FONTS = {  # name -> (regular file, bold file or None for variable font)
     "plex": ("IBMPlexSansArabic-Regular.ttf", "IBMPlexSansArabic-Bold.ttf"),
     "kufi": ("NotoKufiArabic[wght].ttf", None),
 }
-FONT = os.environ.get("NABA_FONT", "cairo")
+FONT = os.environ.get("NABA_FONT", "almarai")
 
 def font_css():
     if FONT not in FONTS: return ""
