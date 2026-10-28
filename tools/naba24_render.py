@@ -22,6 +22,25 @@ RED = "#D7141A"
 import os
 WINDOWS = os.environ.get("NABA_WINDOWS","1")=="1"
 QUALITY = int(os.environ.get("NABA_Q","78"))
+import base64
+FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "fonts")
+FONTS = {  # name -> (regular file, bold file or None for variable font)
+    "cairo": ("Cairo[slnt,wght].ttf", None),
+    "almarai": ("Almarai-Regular.ttf", "Almarai-ExtraBold.ttf"),
+    "plex": ("IBMPlexSansArabic-Regular.ttf", "IBMPlexSansArabic-Bold.ttf"),
+    "kufi": ("NotoKufiArabic[wght].ttf", None),
+}
+FONT = os.environ.get("NABA_FONT", "cairo")
+
+def font_css():
+    if FONT not in FONTS: return ""
+    reg, bold = FONTS[FONT]
+    def face(fn, weight):
+        path = os.path.join(FONT_DIR, fn)
+        if not os.path.exists(path): return ""
+        b64 = base64.b64encode(open(path, "rb").read()).decode()
+        return "@font-face{font-family:'NabaAr';src:url(data:font/ttf;base64,%s);font-weight:%s}" % (b64, weight)
+    return face(reg, "100 900" if bold is None else "400") + (face(bold, "700") if bold else "")
 INK = "#111111"
 
 # ---------- illustration scenes (flat vector, 1080 x 1000 viewBox) ----------
@@ -171,7 +190,7 @@ LOGO = f"""<div class="logo"><div class="logo-in"><span class="l1">نبأ</span>
 
 CSS = """
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:%(W)dpx;height:%(H)dpx;background:#fff;font-family:'DejaVu Sans',sans-serif;direction:rtl;overflow:hidden;position:relative}
+body{width:%(W)dpx;height:%(H)dpx;background:#fff;font-family:'NabaAr','DejaVu Sans',sans-serif;direction:rtl;overflow:hidden;position:relative}
 .img{position:absolute;top:0;left:0;width:%(W)dpx;height:%(IH)dpx;overflow:hidden}
 .img svg{width:100%%;height:100%%}
 .img:after{content:'';position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff)}
@@ -182,7 +201,7 @@ body{width:%(W)dpx;height:%(H)dpx;background:#fff;font-family:'DejaVu Sans',sans
 .content{position:absolute;top:%(CT)dpx;right:60px;left:60px}
 .badge{display:inline-block;background:%(RED)s;color:#fff;font-weight:bold;font-size:%(BF)dpx;padding:12px 40px;transform:skewX(-14deg);margin-bottom:%(GAP)dpx}
 .badge span{display:inline-block;transform:skewX(14deg)}
-h1{font-size:%(HF)dpx;line-height:1.35;color:%(INK)s;font-weight:bold}
+h1{font-size:%(HF)dpx;line-height:1.3;font-weight:800;color:%(INK)s;font-weight:bold}
 h1 .r{color:%(RED)s;display:block}
 .sub{font-size:%(SF)dpx;color:#555;margin-top:%(GAP2)dpx;line-height:1.5}
 .stats{display:flex;gap:22px;margin-top:%(GAP)dpx}
@@ -196,14 +215,17 @@ h1 .r{color:%(RED)s;display:block}
 def build(spec, W, H, story):
     IH = 900 if story else 640
     p = dict(W=W, H=H, IH=IH, RED=RED, INK=INK,
-             CT=(820 if story else 560), BF=(40 if story else 34), GAP=(40 if story else 34),
-             GAP2=(22 if story else 14), HF=(66 if story else 64), SF=(36 if story else 32),
-             SP=(34 if story else 34), VF=(46 if story else 46), LF=(28 if story else 26),
+             CT=(830 if story else 560), BF=(46 if story else 38), GAP=(48 if story else 36),
+             GAP2=(24 if story else 14), HF=(84 if story else 74), SF=(44 if story else 36),
+             SP=(48 if story else 34), VF=(62 if story else 54), LF=(31 if story else 29),
              FB=(90 if story else 40))
-    e = html.escape
+    import re
+    def e(t):
+        t = html.escape(t)
+        return re.sub(r'([+\-\u2212]?\d[\d.,]*%?)', r'<span dir="ltr" style="unicode-bidi:isolate">\1</span>', t)
     stats = "".join(f'<div class="stat"><div class="v">{e(s["value"])}</div><div class="lb">{e(s["label"])}</div></div>' for s in spec["stats"][:3])
     svg = f'<svg viewBox="0 {250 if not story else 60} 1080 {640 if not story else 900}" preserveAspectRatio="xMidYMid slice">{SCENES.get(spec.get("scene","world"), scene_world)()}</svg>'
-    return f"""<!doctype html><html lang="ar"><head><meta charset="utf-8"><style>{CSS % p}</style></head><body>
+    return f"""<!doctype html><html lang="ar"><head><meta charset="utf-8"><style>{font_css()}{CSS % p}</style></head><body>
 <div class="img">{svg}</div>{LOGO}<div class="pill">{e(spec['topic'])}</div>
 <div class="content"><div class="badge"><span>خبر عاجل</span></div>
 <h1>{e(spec['line1'])}<span class="r">{e(spec['line2'])}</span></h1>
