@@ -186,7 +186,11 @@ def scene_aviation():
 SCENES = dict(trade=scene_trade, finance=scene_finance, oil=scene_oil, world=scene_world,
               gov=scene_gov, tech=scene_tech, health=scene_health, aviation=scene_aviation)
 
-LOGO = f"""<div class="logo"><div class="logo-in"><span class="l1">نبأ</span><span class="l2">24</span></div></div>"""
+LOGO_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "logo.png")
+if os.path.exists(LOGO_FILE):
+    LOGO = '<img class="logo-img" src="data:image/png;base64,%s">' % base64.b64encode(open(LOGO_FILE, "rb").read()).decode()
+else:
+    LOGO = f"""<div class="logo"><div class="logo-in"><span class="l1">نبأ</span><span class="l2">24</span></div></div>"""
 
 CSS = """
 *{margin:0;padding:0;box-sizing:border-box}
@@ -197,6 +201,7 @@ body{width:%(W)dpx;height:%(H)dpx;background:#fff;font-family:'NabaAr','DejaVu S
 .logo{position:absolute;top:40px;left:40px;width:150px;height:150px;border-radius:50%%;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}
 .logo-in{width:132px;height:132px;border-radius:50%%;background:%(RED)s;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;line-height:1}
 .l1{font-size:50px;font-weight:bold}.l2{font-size:34px;font-weight:bold;margin-top:4px;direction:ltr}
+.logo-img{position:absolute;top:34px;left:34px;width:180px;height:180px;border-radius:50%%;box-shadow:0 6px 22px rgba(0,0,0,.35)}
 .pill{position:absolute;top:66px;right:40px;background:rgba(17,17,17,.85);color:#fff;font-size:34px;font-weight:bold;padding:14px 36px;border-radius:60px}
 .content{position:absolute;top:%(CT)dpx;right:60px;left:60px}
 .badge{display:inline-block;background:%(RED)s;color:#fff;font-weight:bold;font-size:%(BF)dpx;padding:12px 40px;transform:skewX(-14deg);margin-bottom:%(GAP)dpx}
