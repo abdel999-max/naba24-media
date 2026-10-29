@@ -223,13 +223,13 @@ def build(spec, W, H, story):
     IH = 900 if story else 640
     p = dict(W=W, H=H, IH=IH, RED=RED, INK=INK,
              CT=(830 if story else 560), BF=(46 if story else 38), GAP=(48 if story else 36),
-             GAP2=(24 if story else 14), HF=(84 if story else 74), SF=(44 if story else 36),
+             GAP2=(24 if story else 14), HF=(76 if story else 74), SF=(44 if story else 36),
              SP=(48 if story else 34), VF=(62 if story else 54), LF=(31 if story else 29),
              FB=(90 if story else 40))
     import re
     def e(t):
         t = html.escape(t)
-        return re.sub(r'([+\-\u2212]?\d[\d.,]*%?)', r'<span dir="ltr" style="unicode-bidi:isolate">\1</span>', t)
+        return re.sub(r'([+\-\u2212]?\d[\d.,]*(?:\s?[\u2013\-]\s?\d[\d.,]*)?%?)', r'<span dir="ltr" style="unicode-bidi:isolate">\1</span>', t)
     stats = "".join(f'<div class="stat"><div class="v">{e(s["value"])}</div><div class="lb">{e(s["label"])}</div></div>' for s in spec["stats"][:3])
     photo = spec.get("photo")
     if photo and not os.path.isabs(photo) and spec.get("_base"):
