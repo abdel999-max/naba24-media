@@ -1,0 +1,3 @@
+# Raw stock photos are inputs only; never publish them standalone (Pixabay license)
+posts/*_photo.jpg
+*.photo.jpg

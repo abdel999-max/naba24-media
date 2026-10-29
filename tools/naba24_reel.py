@@ -18,7 +18,7 @@ ANIM_CSS = """
 @keyframes slideR{from{opacity:0;transform:translateX(120px) skewX(-14deg)}to{opacity:1;transform:skewX(-14deg)}}
 @keyframes pop{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(215,20,26,.55)}50%{box-shadow:0 0 0 22px rgba(215,20,26,0)}}
-.img svg{transform-origin:50% 40%;animation:zoom %(T)dms linear both}
+.img svg,.img .ph{transform-origin:50% 40%;animation:zoom %(T)dms linear both}
 .logo-img,.logo{animation:fade 500ms ease-out 0ms both}
 .pill{animation:up 500ms ease-out 250ms both}
 .badge{animation:slideR 450ms cubic-bezier(.2,.8,.2,1) 600ms both, pulse 1400ms ease-in-out 1200ms 6}
@@ -33,6 +33,7 @@ h1 .r{animation:up 600ms ease-out 1600ms both}
 
 def main():
     spec = json.load(open(sys.argv[1], encoding="utf-8"))
+    spec["_base"] = os.path.dirname(os.path.abspath(sys.argv[1]))
     out = sys.argv[2]
     secs = float(sys.argv[3]) if len(sys.argv) > 3 else 12.0
     T = int(secs * 1000)

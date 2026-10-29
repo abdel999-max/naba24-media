@@ -197,6 +197,8 @@ CSS = """
 body{width:%(W)dpx;height:%(H)dpx;background:#fff;font-family:'NabaAr','DejaVu Sans',sans-serif;direction:rtl;overflow:hidden;position:relative}
 .img{position:absolute;top:0;left:0;width:%(W)dpx;height:%(IH)dpx;overflow:hidden}
 .img svg{width:100%%;height:100%%}
+.img .ph{width:100%%;height:100%%;object-fit:cover;display:block;filter:saturate(1.05) contrast(1.03)}
+.img:before{content:'';position:absolute;left:0;right:0;top:0;height:260px;background:linear-gradient(to bottom,rgba(0,0,0,.45),rgba(0,0,0,0));z-index:1}
 .img:after{content:'';position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff)}
 .logo{position:absolute;top:40px;left:40px;width:150px;height:150px;border-radius:50%%;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}
 .logo-in{width:132px;height:132px;border-radius:50%%;background:%(RED)s;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;line-height:1}
@@ -229,7 +231,16 @@ def build(spec, W, H, story):
         t = html.escape(t)
         return re.sub(r'([+\-\u2212]?\d[\d.,]*%?)', r'<span dir="ltr" style="unicode-bidi:isolate">\1</span>', t)
     stats = "".join(f'<div class="stat"><div class="v">{e(s["value"])}</div><div class="lb">{e(s["label"])}</div></div>' for s in spec["stats"][:3])
-    svg = f'<svg viewBox="0 {250 if not story else 60} 1080 {640 if not story else 900}" preserveAspectRatio="xMidYMid slice">{SCENES.get(spec.get("scene","world"), scene_world)()}</svg>'
+    photo = spec.get("photo")
+    if photo and not os.path.isabs(photo) and spec.get("_base"):
+        photo = os.path.join(spec["_base"], photo)
+    if photo and os.path.exists(photo):
+        b64 = base64.b64encode(open(photo, "rb").read()).decode()
+        svg = f'<img class="ph" src="data:image/jpeg;base64,{b64}">'
+    else:
+        svg = None
+    if svg is None:
+      svg = f'<svg viewBox="0 {250 if not story else 60} 1080 {640 if not story else 900}" preserveAspectRatio="xMidYMid slice">{SCENES.get(spec.get("scene","world"), scene_world)()}</svg>'
     return f"""<!doctype html><html lang="ar"><head><meta charset="utf-8"><style>{font_css()}{CSS % p}</style></head><body>
 <div class="img">{svg}</div>{LOGO}<div class="pill">{e(spec['topic'])}</div>
 <div class="content"><div class="badge"><span>خبر عاجل</span></div>
@@ -240,6 +251,7 @@ def build(spec, W, H, story):
 
 def main():
     spec = json.load(open(sys.argv[1], encoding="utf-8"))
+    spec["_base"] = os.path.dirname(os.path.abspath(sys.argv[1]))
     out = sys.argv[2]
     with sync_playwright() as pw:
         br = pw.chromium.launch()
